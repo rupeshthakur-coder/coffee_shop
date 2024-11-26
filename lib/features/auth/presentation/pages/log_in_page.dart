@@ -155,21 +155,21 @@ class _LoginFormState extends State<LoginForm> {
     );
   }
 
-  void _handleForgotPassword() async {
-    try {
-      await context.read<AuthBloc>().repository.forgotPassword(
-            _identifierController.text,
-            _selectedMethod,
-          );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password reset email sent')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-    }
-  }
+  // void _handleForgotPassword() async {
+  //   try {
+  //     await context.read<AuthBloc>().repository.forgotPassword(
+  //           _identifierController.text,
+  //           _selectedMethod,
+  //         );
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Password reset email sent')),
+  //     );
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text(e.toString())),
+  //     );
+  //   }
+  // }
 
   Widget _buildTextField(
     String label,
