@@ -2,7 +2,9 @@ import 'package:coffee_shop/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:coffee_shop/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:coffee_shop/features/auth/presentation/pages/log_in_page.dart';
 import 'package:coffee_shop/features/auth/presentation/pages/sign_up_page.dart';
+import 'package:coffee_shop/features/cart/cart_page.dart';
 import 'package:coffee_shop/features/home/home_page.dart';
+import 'package:coffee_shop/features/profile/profile_page.dart';
 import 'package:coffee_shop/injection_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,6 +52,8 @@ class MyApp extends StatelessWidget {
               '/signup': (context) => const SignUpPage(),
               '/home': (context) => const HomePage(),
               '/forgot-password': (context) => const ForgotPasswordPage(),
+              '/cart': (context) => const CartPage(),
+              '/profile': (context) => const ProfilePage(),
             },
           ),
         );
