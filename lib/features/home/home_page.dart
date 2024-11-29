@@ -1,44 +1,211 @@
+import 'package:coffee_shop/core/textStyle/app_text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  String _selectedCategory = 'All';
+  final List<String> _categories = [
+    'All',
+    'Hot Coffee',
+    'Cold Coffee',
+    'Specials'
+  ];
+
+  Future<void> _addToFavorites(Map<String, dynamic> item) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Please login to add items to favorites')),
+        );
+        return;
+      }
+
+      await FirebaseFirestore.instance.collection('favorites').add({
+        'userId': user.uid, // Using actual user UID from Firebase Auth
+        'itemId': item['id'],
+        'timestamp': FieldValue.serverTimestamp(),
+        ...item, // Include all item details
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Added to favorites')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error adding to favorites: $e')),
+      );
+    }
+  }
+
+  Future<void> _addToCart(Map<String, dynamic> item) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please login to add items to cart')),
+        );
+        return;
+      }
+
+      // Check if item already exists in user's cart using both userId and the complete item name
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('cart')
+          .where('userId', isEqualTo: user.uid)
+          .where('itemId', isEqualTo: item['id'])
+          .where('name', isEqualTo: item['name']) // Add name check
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Item exists, update quantity
+        final docId = querySnapshot.docs.first.id;
+        final currentQuantity =
+            querySnapshot.docs.first.data()['quantity'] ?? 0;
+
+        await FirebaseFirestore.instance.collection('cart').doc(docId).update({
+          'quantity': currentQuantity + 1,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      } else {
+        // Item doesn't exist, create new document
+        await FirebaseFirestore.instance.collection('cart').add({
+          'userId': user.uid,
+          'itemId': item['id'],
+          'name': item['name'], // Ensure name is stored
+          'quantity': 1,
+          'timestamp': FieldValue.serverTimestamp(),
+          ...item,
+        });
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Added to cart')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error adding to cart: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Products'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              // Handle notification action
-            },
-          ),
-        ],
+      body: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {
+            _searchQuery = '';
+            _searchController.clear();
+          });
+        },
+        child: Column(
+          children: [
+            _buildSearchBar(),
+            _buildCategoryList(),
+            Expanded(child: _buildProductList()),
+          ],
+        ),
       ),
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          Expanded(child: _buildProductList()),
-        ],
+    );
+  }
+
+  Widget _buildCategoryList() {
+    return Container(
+      height: 50.h,
+      margin: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _categories.length,
+        itemBuilder: (context, index) {
+          final isSelected = _selectedCategory == _categories[index];
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4.w),
+            child: FilterChip(
+              selected: isSelected,
+              label: Text(
+                _categories[index],
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: isSelected ? Colors.white : Colors.brown,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : Colors.brown,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+              backgroundColor: Colors.grey[100],
+              selectedColor: Colors.brown,
+              onSelected: (selected) {
+                setState(() {
+                  _selectedCategory = _categories[index];
+                });
+              },
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+          );
+        },
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }
 
   Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: 'Search products...',
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Colors.grey),
+    return Container(
+      margin: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
-          suffixIcon: const Icon(Icons.search),
+        ],
+      ),
+      child: TextField(
+        controller: _searchController,
+        style: TextStyle(fontSize: 14.sp),
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value.toLowerCase();
+          });
+        },
+        decoration: InputDecoration(
+          hintText: 'Find your perfect coffee...',
+          hintStyle: TextStyle(color: Colors.grey[400]),
+          prefixIcon: Icon(Icons.search, color: Colors.brown[400]),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.clear, color: Colors.brown[400]),
+                  onPressed: () {
+                    setState(() {
+                      _searchQuery = '';
+                      _searchController.clear();
+                    });
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
     );
@@ -46,63 +213,198 @@ class HomePage extends StatelessWidget {
 
   Widget _buildProductList() {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('products').snapshots(),
+      stream: FirebaseFirestore.instance.collection('items').snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return const Center(child: Text('Error loading products'));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                const SizedBox(height: 16),
+                Text('Error: ${snapshot.error}'),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: () => setState(() {}),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
         }
 
-        final products = snapshot.data?.docs ?? [];
+        final items = snapshot.data?.docs ?? [];
+        final filteredItems = items.where((item) {
+          final data = item.data() as Map<String, dynamic>;
+          final itemName = data['name'] as String;
+          final itemCategory = data['category'] as String? ?? 'All';
 
-        return ListView.builder(
-          itemCount: products.length,
+          bool matchesSearch = itemName.toLowerCase().contains(_searchQuery);
+          bool matchesCategory =
+              _selectedCategory == 'All' || itemCategory == _selectedCategory;
+
+          return matchesSearch && matchesCategory;
+        }).toList();
+
+        if (filteredItems.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.search_off, size: 60, color: Colors.grey),
+                const SizedBox(height: 16),
+                const Text('No items found'),
+                if (_searchQuery.isNotEmpty)
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _searchQuery = '';
+                        _searchController.clear();
+                      });
+                    },
+                    child: const Text('Clear Search'),
+                  ),
+              ],
+            ),
+          );
+        }
+
+        return GridView.builder(
+          padding: EdgeInsets.all(8.w),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+            childAspectRatio: 0.7,
+            crossAxisSpacing: 10.w,
+            mainAxisSpacing: 10.h,
+          ),
+          itemCount: filteredItems.length,
           itemBuilder: (context, index) {
-            final product = products[index].data() as Map<String, dynamic>;
-            return ListTile(
-              title: Text(product['name']),
-              subtitle: Text('\$${product['price']}'),
-              leading: Image.network(product['image']),
-              onTap: () {
-                // Handle product tap
-              },
+            final item = filteredItems[index].data() as Map<String, dynamic>;
+            return Card(
+              elevation: 4,
+              shadowColor: Colors.black26,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Stack(
+                    children: [
+                      SizedBox(
+                        height: 146.h,
+                        width: double.infinity,
+                        child: ClipRRect(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(20.r)),
+                          child: Image.network(
+                            item['image'],
+                            fit: BoxFit.fill,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes !=
+                                          null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 8.h,
+                        right: 8.w,
+                        child: CircleAvatar(
+                          radius: 16.r,
+                          backgroundColor: Colors.white,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.favorite_border,
+                              color: Colors.brown,
+                              size: 18.sp,
+                            ),
+                            onPressed: () => _addToFavorites(item),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(8.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['name'],
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 4.h),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 6.w, vertical: 2.h),
+                          decoration: BoxDecoration(
+                            color: Colors.brown[50],
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                          child: Text(
+                            'Coffee: ${item['coffee']}% | Milk: ${item['milk']}%',
+                            style: TextStyle(
+                              fontSize: 9.sp,
+                              color: Colors.brown[700],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '\$${item['amount']}',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.brown[700],
+                              ),
+                            ),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.brown,
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.add_shopping_cart,
+                                  color: Colors.white,
+                                  size: 16.sp,
+                                ),
+                                onPressed: () => _addToCart(item),
+                                padding: EdgeInsets.all(6.w),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             );
           },
         );
-      },
-    );
-  }
-
-  Widget _buildBottomNavigationBar(BuildContext context) {
-    return BottomNavigationBar(
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_cart),
-          label: 'Cart',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: 'Profile',
-        ),
-      ],
-      onTap: (index) {
-        switch (index) {
-          case 0:
-            // Navigate to Home
-            break;
-          case 1:
-            Navigator.pushNamed(context, '/cart');
-            break;
-          case 2:
-            Navigator.pushNamed(context, '/profile');
-            break;
-        }
       },
     );
   }

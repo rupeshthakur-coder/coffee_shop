@@ -44,6 +44,8 @@ dependencies:
   firebase_core: ^3.8.0
   flutter_screenutil: ^5.9.3
   google_fonts: ^6.2.1
+  http: ^1.2.2
+  image: ^4.3.0
 
 dev_dependencies:
   flutter_test:
