@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:coffee_shop/features/admin/admin_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -16,6 +17,9 @@ class _ProfilePageState extends State<ProfilePage> {
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
   bool _isEditing = false;
+  int _avatarTapCount = 0;
+  final _adminEmailController = TextEditingController();
+  final _adminPasswordController = TextEditingController();
 
   @override
   void initState() {
@@ -65,6 +69,150 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _handleLogout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      if (mounted) {
+        Navigator.of(context)
+            .pushReplacementNamed('/login'); // Adjust this route name as needed
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to log out')),
+        );
+      }
+    }
+  }
+
+  Future<void> _authenticateAdmin() async {
+    print("Starting admin authentication"); // Debug print
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Admin Authentication'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _adminEmailController,
+              decoration: const InputDecoration(
+                labelText: 'Admin Email',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _adminPasswordController,
+              decoration: const InputDecoration(
+                labelText: 'Admin Password',
+                border: OutlineInputBorder(),
+              ),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              print("Login button pressed"); // Debug print
+
+              // Show loading indicator
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+
+              try {
+                print("Checking admin credentials"); // Debug print
+                // Check admin credentials in Firestore
+                final adminDoc = await FirebaseFirestore.instance
+                    .collection('Admin')
+                    .doc(_adminEmailController.text)
+                    .get();
+
+                print("Admin doc exists: ${adminDoc.exists}"); // Debug print
+                print(
+                    "Admin password match: ${adminDoc.data()?['password'] == _adminPasswordController.text}"); // Debug print
+
+                if (adminDoc.exists &&
+                    adminDoc.data()?['password'] ==
+                        _adminPasswordController.text) {
+                  print("Authentication successful"); // Debug print
+
+                  // Close loading and auth dialogs
+                  Navigator.pop(context); // Close loading
+                  Navigator.pop(context); // Close auth dialog
+
+                  // Navigate to admin page
+                  if (mounted) {
+                    print("Attempting navigation to admin page"); // Debug print
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AdminPage(),
+                      ),
+                    );
+                    print("Navigation completed"); // Debug print
+                  }
+                } else {
+                  print("Invalid credentials"); // Debug print
+                  // Close loading dialog
+                  Navigator.pop(context);
+
+                  // Show error
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Invalid admin credentials')),
+                  );
+                }
+              } catch (e) {
+                print("Error occurred: $e"); // Debug print
+                // Close loading dialog
+                Navigator.pop(context);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ${e.toString()}')),
+                );
+              }
+            },
+            child: const Text('Login'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleAvatarTap() {
+    setState(() {
+      _avatarTapCount++;
+      print('Avatar tapped $_avatarTapCount times'); // Debug print
+
+      // Show a subtle feedback
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Tap count: $_avatarTapCount'),
+          duration: const Duration(milliseconds: 500),
+          backgroundColor: Colors.brown,
+        ),
+      );
+
+      if (_avatarTapCount >= 5) {
+        _avatarTapCount = 0; // Reset counter
+        print('Showing admin authentication dialog'); // Debug print
+        _authenticateAdmin();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,6 +220,12 @@ class _ProfilePageState extends State<ProfilePage> {
         elevation: 0,
         backgroundColor: Colors.brown,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _handleLogout,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -85,18 +239,22 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Center(
                     child: Column(
                       children: [
-                        GestureDetector(
-                          onTap: () {
-                            // Allow user to choose an icon
-                            setState(() {
-                              _isEditing = true;
-                            });
-                          },
-                          child: const CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.white,
-                            child: Icon(Icons.person,
-                                size: 50, color: Colors.grey),
+                        InkWell(
+                          onTap: _handleAvatarTap,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 2,
+                              ),
+                            ),
+                            child: const CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.white,
+                              child: Icon(Icons.person,
+                                  size: 50, color: Colors.grey),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -266,6 +424,8 @@ class _ProfilePageState extends State<ProfilePage> {
     _emailController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
+    _adminEmailController.dispose();
+    _adminPasswordController.dispose();
     super.dispose();
   }
 }

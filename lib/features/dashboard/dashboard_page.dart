@@ -1,9 +1,11 @@
+import 'package:coffee_shop/features/cart/bloc/cart_bloc.dart';
 import 'package:coffee_shop/features/dashboard/pages/todays_special_page.dart';
 import 'package:coffee_shop/features/home/home_page.dart';
 import 'package:coffee_shop/features/profile/profile_page.dart';
-import 'package:coffee_shop/services/cart_service.dart';
 
 import 'package:flutter/material.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -14,7 +16,6 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   int _selectedIndex = 0;
-  int _cartItemCount = 0;
 
   // List of pages to show
   final List<Widget> _pages = [
@@ -22,20 +23,6 @@ class _DashboardPageState extends State<DashboardPage> {
     const TodaySpecialPage(),
     const ProfilePage(),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _updateCounts();
-  }
-
-  void _updateCounts() {
-    CartService.getItemCount().then((count) {
-      setState(() {
-        _cartItemCount = count;
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,18 +52,26 @@ class _DashboardPageState extends State<DashboardPage> {
               // Handle notification action
             },
           ),
-          IconButton(
-            icon: Badge(
-              backgroundColor: Colors.brown,
-              label: Text('$_cartItemCount'),
-              child: Icon(
-                Icons.shopping_cart_outlined,
-                color: Colors.brown.shade700,
-              ),
-            ),
-            onPressed: () => Navigator.pushNamed(context, '/cart').then((_) {
-              _updateCounts();
-            }),
+          BlocBuilder<CartBloc, CartState>(
+            builder: (context, state) {
+              int totalQuantity = 0;
+              if (state is CartLoaded) {
+                // Sum up quantities of all items
+                totalQuantity =
+                    state.items.fold(0, (sum, item) => sum + item.quantity);
+              }
+              return IconButton(
+                icon: Badge(
+                  backgroundColor: Colors.brown,
+                  label: Text('$totalQuantity'),
+                  child: Icon(
+                    Icons.shopping_cart_outlined,
+                    color: Colors.brown.shade700,
+                  ),
+                ),
+                onPressed: () => Navigator.pushNamed(context, '/cart'),
+              );
+            },
           ),
           const SizedBox(width: 8),
         ],
