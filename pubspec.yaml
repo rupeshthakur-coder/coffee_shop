@@ -47,6 +47,8 @@ dependencies:
   http: ^1.2.2
   image: ^4.3.0
   riverpod: ^2.6.1
+  shared_preferences: ^2.3.3
+  flutter_typeahead: ^5.2.0
 
 dev_dependencies:
   flutter_test:

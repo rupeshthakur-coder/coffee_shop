@@ -1,7 +1,8 @@
+import 'package:coffee_shop/features/admin/admin_dashboard/admin_dashbard_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:coffee_shop/features/admin/admin_page.dart';
+import 'package:coffee_shop/features/admin/admin_dashboard/add_product_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -158,7 +159,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const AdminPage(),
+                        builder: (context) => const AdminDashboardPage(),
                       ),
                     );
                     print("Navigation completed"); // Debug print

@@ -1,18 +1,18 @@
-import 'package:coffee_shop/features/admin/admin_page.dart';
+import 'package:coffee_shop/features/admin/admin_dashboard/admin_dashbard_page.dart';
 import 'package:coffee_shop/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:coffee_shop/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:coffee_shop/features/auth/presentation/pages/log_in_page.dart';
 import 'package:coffee_shop/features/auth/presentation/pages/sign_up_page.dart';
-import 'package:coffee_shop/features/cart/bloc/cart_bloc.dart';
-import 'package:coffee_shop/features/cart/cart_page.dart';
-import 'package:coffee_shop/features/dashboard/dashboard_page.dart';
-import 'package:coffee_shop/features/profile/profile_page.dart';
+import 'package:coffee_shop/features/user/cart/bloc/cart_bloc.dart';
+import 'package:coffee_shop/features/user/cart/cart_page.dart';
+import 'package:coffee_shop/features/user/profile/profile_page.dart';
+import 'package:coffee_shop/features/user/user_dashboard/pages/dashboard_page.dart';
+import 'package:coffee_shop/firebase_options.dart';
 import 'package:coffee_shop/injection_container.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() async {
@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
               '/forgot-password': (context) => const ForgotPasswordPage(),
               '/cart': (context) => const CartPage(),
               '/profile': (context) => const ProfilePage(),
-              '/admin': (context) => const AdminPage(),
+              '/admin': (context) => const AdminDashboardPage(),
             },
           ),
         );

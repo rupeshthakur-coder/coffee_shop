@@ -1,7 +1,7 @@
-import 'package:coffee_shop/features/cart/bloc/cart_bloc.dart';
-import 'package:coffee_shop/features/dashboard/pages/todays_special_page.dart';
-import 'package:coffee_shop/features/home/home_page.dart';
-import 'package:coffee_shop/features/profile/profile_page.dart';
+import 'package:coffee_shop/features/user/cart/bloc/cart_bloc.dart';
+import 'package:coffee_shop/features/user/todays_special/todays_special_page.dart';
+import 'package:coffee_shop/features/user/home/home_page.dart';
+import 'package:coffee_shop/features/user/profile/profile_page.dart';
 
 import 'package:flutter/material.dart';
 

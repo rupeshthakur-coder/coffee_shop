@@ -1,4 +1,4 @@
-import 'package:coffee_shop/features/cart/bloc/cart_bloc.dart';
+import 'package:coffee_shop/features/user/cart/bloc/cart_bloc.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class CartEvent extends Equatable {
