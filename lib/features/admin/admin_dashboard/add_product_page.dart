@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class Product {
   final String image;
@@ -38,7 +38,7 @@ class Product {
     return {
       'image': image,
       'name': name,
-      'price': price,
+      'amount': price,
       'stock': stock,
       'milk': milk,
       'water': water,
@@ -109,9 +109,7 @@ class _AddProductPageState extends State<AddProductPage> {
         temperature: temperatureController.text,
       );
 
-      await FirebaseFirestore.instance
-          .collection('products')
-          .add(product.toMap());
+      await FirebaseFirestore.instance.collection('items').add(product.toMap());
 
       _clearForm();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -180,8 +178,7 @@ class _AddProductPageState extends State<AddProductPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Description Section
-            const Text('Description',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
             // Product Name Field
@@ -202,15 +199,13 @@ class _AddProductPageState extends State<AddProductPage> {
               decoration: const InputDecoration(
                 labelText: 'Product Description',
                 border: OutlineInputBorder(),
-                hintText:
-                    'Describe the product characteristics, flavor notes, etc.',
+                hintText: 'Describe the product characteristics, flavor notes, etc.',
               ),
             ),
             const SizedBox(height: 24),
 
             // Category Section
-            const Text('Category',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Category', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
             // Update the category dropdown
@@ -256,8 +251,7 @@ class _AddProductPageState extends State<AddProductPage> {
             const SizedBox(height: 24),
 
             // Add Image URL Field
-            const Text('Image',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Image', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             TextField(
               controller: imageController,
@@ -270,19 +264,15 @@ class _AddProductPageState extends State<AddProductPage> {
             const SizedBox(height: 24),
 
             // Add new fields before Recipe Details section
-            const Text('Product Details',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Product Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
             TextField(
               controller: originController,
               decoration: InputDecoration(
-                labelText:
-                    selectedType == 'coffee' ? 'Coffee Origin' : 'Tea Origin',
+                labelText: selectedType == 'coffee' ? 'Coffee Origin' : 'Tea Origin',
                 border: const OutlineInputBorder(),
-                hintText: selectedType == 'coffee'
-                    ? 'e.g., Ethiopia, Colombia'
-                    : 'e.g., China, India',
+                hintText: selectedType == 'coffee' ? 'e.g., Ethiopia, Colombia' : 'e.g., China, India',
               ),
             ),
             const SizedBox(height: 16),
@@ -327,8 +317,7 @@ class _AddProductPageState extends State<AddProductPage> {
             const SizedBox(height: 24),
 
             // Add these fields before the Product Details section
-            const Text('Recipe Details',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Recipe Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -409,8 +398,7 @@ class _AddProductPageState extends State<AddProductPage> {
                       backgroundColor: Colors.blue,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('Add Product',
-                        style: TextStyle(color: Colors.white)),
+                    child: const Text('Add Product', style: TextStyle(color: Colors.white)),
                   ),
                 ),
                 const SizedBox(width: 16),

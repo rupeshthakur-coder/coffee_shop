@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class HomePage<HomePageState> extends StatefulWidget {
@@ -14,20 +14,14 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedCategory = 'All';
-  final List<String> _categories = [
-    'All',
-    'Hot Coffee',
-    'Cold Coffee',
-    'Specials'
-  ];
+  final List<String> _categories = ['All', 'Hot Coffee', 'Cold Coffee', 'Specials'];
 
   Future<void> _addToFavorites(Map<String, dynamic> item) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Please login to add items to favorites')),
+          const SnackBar(content: Text('Please login to add items to favorites')),
         );
         return;
       }
@@ -70,8 +64,7 @@ class _HomePageState extends State<HomePage> {
       if (querySnapshot.docs.isNotEmpty) {
         // Item exists, update quantity
         final docId = querySnapshot.docs.first.id;
-        final currentQuantity =
-            querySnapshot.docs.first.data()['quantity'] ?? 0;
+        final currentQuantity = querySnapshot.docs.first.data()['quantity'] ?? 0;
 
         await FirebaseFirestore.instance.collection('cart').doc(docId).update({
           'quantity': currentQuantity + 1,
@@ -202,8 +195,7 @@ class _HomePageState extends State<HomePage> {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
     );
@@ -241,8 +233,7 @@ class _HomePageState extends State<HomePage> {
           final itemCategory = data['category'] as String? ?? 'All';
 
           bool matchesSearch = itemName.toLowerCase().contains(_searchQuery);
-          bool matchesCategory =
-              _selectedCategory == 'All' || itemCategory == _selectedCategory;
+          bool matchesCategory = _selectedCategory == 'All' || itemCategory == _selectedCategory;
 
           return matchesSearch && matchesCategory;
         }).toList();
@@ -293,11 +284,10 @@ class _HomePageState extends State<HomePage> {
                   Stack(
                     children: [
                       SizedBox(
-                        height: 146.h,
+                        height: 140.h,
                         width: double.infinity,
                         child: ClipRRect(
-                          borderRadius:
-                              BorderRadius.vertical(top: Radius.circular(20.r)),
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
                           child: Image.network(
                             item['image'],
                             fit: BoxFit.fill,
@@ -305,10 +295,8 @@ class _HomePageState extends State<HomePage> {
                               if (loadingProgress == null) return child;
                               return Center(
                                 child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes !=
-                                          null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
                                       : null,
                                 ),
                               );
@@ -352,8 +340,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         SizedBox(height: 4.h),
                         Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 6.w, vertical: 2.h),
+                          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                           decoration: BoxDecoration(
                             color: Colors.brown[50],
                             borderRadius: BorderRadius.circular(8.r),

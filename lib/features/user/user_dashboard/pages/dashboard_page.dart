@@ -1,10 +1,8 @@
 import 'package:coffee_shop/features/user/cart/bloc/cart_bloc.dart';
-import 'package:coffee_shop/features/user/todays_special/todays_special_page.dart';
 import 'package:coffee_shop/features/user/home/home_page.dart';
 import 'package:coffee_shop/features/user/profile/profile_page.dart';
-
+import 'package:coffee_shop/features/user/todays_special/todays_special_page.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -56,9 +54,7 @@ class _DashboardPageState extends State<DashboardPage> {
             builder: (context, state) {
               int totalQuantity = 0;
               if (state is CartLoaded) {
-                // Sum up quantities of all items
-                totalQuantity =
-                    state.items.fold(0, (sum, item) => sum + item.quantity);
+                totalQuantity = state.items.fold(0, (sum, item) => sum + item.quantity);
               }
               return IconButton(
                 icon: Badge(
