@@ -2,7 +2,6 @@ import 'package:coffee_shop/features/admin/admin_dashboard/admin_dashbard_page.d
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:coffee_shop/features/admin/admin_dashboard/add_product_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

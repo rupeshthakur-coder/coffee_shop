@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'features/auth/data/repositories/firebase_auth_repository.dart';
 import 'features/auth/domain/usecases/sign_up_usecase.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
-
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 
 final sl = GetIt.instance;
@@ -29,4 +28,6 @@ void init() {
       repository: sl<FirebaseAuthRepository>(),
     ),
   );
+
+  // for admin
 }
