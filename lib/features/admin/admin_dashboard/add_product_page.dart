@@ -22,16 +22,16 @@ class Product {
     required this.name,
     required this.price,
     required this.stock,
-    this.milk = 0,
-    this.water = 0,
-    this.coffee = 0,
-    this.description = '',
+    required this.milk,
+    required this.water,
+    required this.coffee,
+    required this.description,
     required this.type,
     required this.category,
-    this.origin = '',
-    this.roastLevel = '',
-    this.brewingTime = '',
-    this.temperature = '',
+    required this.origin,
+    required this.roastLevel,
+    required this.brewingTime,
+    required this.temperature,
   });
 
   Map<String, dynamic> toMap() {
@@ -84,10 +84,9 @@ class _AddProductPageState extends State<AddProductPage> {
   };
 
   Future<void> _addProduct() async {
-    if (!_validateRequiredFields()) {
+    if (!_validateFields()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please fill name, price, stock, type and category')),
+        const SnackBar(content: Text('Please fill all required fields')),
       );
       return;
     }
@@ -98,9 +97,9 @@ class _AddProductPageState extends State<AddProductPage> {
         name: nameController.text,
         price: double.parse(priceController.text),
         stock: int.parse(stockController.text),
-        milk: int.tryParse(milkController.text) ?? 0,
-        water: int.tryParse(waterController.text) ?? 0,
-        coffee: int.tryParse(coffeeController.text) ?? 0,
+        milk: int.parse(milkController.text),
+        water: int.parse(waterController.text),
+        coffee: int.parse(coffeeController.text),
         description: descriptionController.text,
         type: selectedType,
         category: selectedCategory,
@@ -123,46 +122,19 @@ class _AddProductPageState extends State<AddProductPage> {
     }
   }
 
-  bool _validateRequiredFields() {
-    // Validate required fields
-    if (nameController.text.isEmpty ||
-        priceController.text.isEmpty ||
-        stockController.text.isEmpty) {
-      return false;
-    }
-
-    // Validate numeric fields
-    try {
-      if (priceController.text.isNotEmpty) {
-        double.parse(priceController.text);
-      }
-      if (stockController.text.isNotEmpty) {
-        int.parse(stockController.text);
-      }
-      if (milkController.text.isNotEmpty) {
-        int.parse(milkController.text);
-      }
-      if (waterController.text.isNotEmpty) {
-        int.parse(waterController.text);
-      }
-      if (coffeeController.text.isNotEmpty) {
-        int.parse(coffeeController.text);
-      }
-      if (brewingTimeController.text.isNotEmpty) {
-        double.parse(brewingTimeController.text);
-      }
-      if (temperatureController.text.isNotEmpty) {
-        double.parse(temperatureController.text);
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please enter valid numbers for numeric fields')),
-      );
-      return false;
-    }
-
-    return true;
+  bool _validateFields() {
+    return imageController.text.isNotEmpty &&
+        nameController.text.isNotEmpty &&
+        priceController.text.isNotEmpty &&
+        stockController.text.isNotEmpty &&
+        milkController.text.isNotEmpty &&
+        waterController.text.isNotEmpty &&
+        coffeeController.text.isNotEmpty &&
+        descriptionController.text.isNotEmpty &&
+        originController.text.isNotEmpty &&
+        roastLevelController.text.isNotEmpty &&
+        brewingTimeController.text.isNotEmpty &&
+        temperatureController.text.isNotEmpty;
   }
 
   void _clearForm() {
@@ -206,8 +178,7 @@ class _AddProductPageState extends State<AddProductPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Description Section
-            const Text('Description',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
             // Product Name Field
@@ -228,15 +199,13 @@ class _AddProductPageState extends State<AddProductPage> {
               decoration: const InputDecoration(
                 labelText: 'Product Description',
                 border: OutlineInputBorder(),
-                hintText:
-                    'Describe the product characteristics, flavor notes, etc.',
+                hintText: 'Describe the product characteristics, flavor notes, etc.',
               ),
             ),
             const SizedBox(height: 24),
 
             // Category Section
-            const Text('Category',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Category', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
             // Update the category dropdown
@@ -282,8 +251,7 @@ class _AddProductPageState extends State<AddProductPage> {
             const SizedBox(height: 24),
 
             // Add Image URL Field
-            const Text('Image',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Image', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             TextField(
               controller: imageController,
@@ -296,19 +264,15 @@ class _AddProductPageState extends State<AddProductPage> {
             const SizedBox(height: 24),
 
             // Add new fields before Recipe Details section
-            const Text('Product Details',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Product Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
             TextField(
               controller: originController,
               decoration: InputDecoration(
-                labelText:
-                    selectedType == 'coffee' ? 'Coffee Origin' : 'Tea Origin',
+                labelText: selectedType == 'coffee' ? 'Coffee Origin' : 'Tea Origin',
                 border: const OutlineInputBorder(),
-                hintText: selectedType == 'coffee'
-                    ? 'e.g., Ethiopia, Colombia'
-                    : 'e.g., China, India',
+                hintText: selectedType == 'coffee' ? 'e.g., Ethiopia, Colombia' : 'e.g., China, India',
               ),
             ),
             const SizedBox(height: 16),
@@ -353,8 +317,7 @@ class _AddProductPageState extends State<AddProductPage> {
             const SizedBox(height: 24),
 
             // Add these fields before the Product Details section
-            const Text('Recipe Details',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Recipe Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -432,11 +395,10 @@ class _AddProductPageState extends State<AddProductPage> {
                   child: ElevatedButton(
                     onPressed: _addProduct,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.brown,
+                      backgroundColor: Colors.blue,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('Add Product',
-                        style: TextStyle(color: Colors.white)),
+                    child: const Text('Add Product', style: TextStyle(color: Colors.white)),
                   ),
                 ),
                 const SizedBox(width: 16),
