@@ -77,7 +77,12 @@ class CartPage extends StatelessWidget {
                   for (var doc in snapshot.data!.docs) {
                     final int quantity = (doc['quantity'] as num? ?? 1).toInt();
                     totalItems += quantity;
-                    totalPrice += (doc['amount'] ?? 0.0) * quantity;
+                    final double itemPrice =
+                        (doc.data() as Map<String, dynamic>)
+                                .containsKey('amount')
+                            ? (doc['amount'] as num).toDouble()
+                            : 0.0;
+                    totalPrice += itemPrice * quantity;
                   }
 
                   return Stack(
@@ -165,7 +170,7 @@ class CartPage extends StatelessWidget {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            '\$${item['amount']?.toString() ?? '0.00'}',
+                                            '\$${((item.data() as Map<String, dynamic>).containsKey('amount') ? (item['amount'] as num).toDouble() : 0.0).toString()}',
                                             style: TextStyle(
                                               color: Colors.brown[700],
                                               fontWeight: FontWeight.w500,

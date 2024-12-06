@@ -21,18 +21,14 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   init();
-
   final auth = FirebaseAuth.instance;
   final initialRoute = auth.currentUser != null ? '/home' : '/login';
-
   runApp(MyApp(initialRoute: initialRoute));
 }
 
 class MyApp extends StatelessWidget {
   final String initialRoute;
-
   const MyApp({super.key, required this.initialRoute});
-
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(

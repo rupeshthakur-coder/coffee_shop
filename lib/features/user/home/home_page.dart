@@ -1,7 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coffee_shop/features/product_details/data/repositories/product_repository_impl.dart';
+import 'package:coffee_shop/features/product_details/domain/usecases/get_product_details.dart';
+import 'package:coffee_shop/features/product_details/presentation/bloc/product_details_bloc.dart';
+import 'package:coffee_shop/features/product_details/presentation/pages/product_details_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomePage<HomePageState> extends StatefulWidget {
   const HomePage({super.key});
@@ -14,14 +19,20 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedCategory = 'All';
-  final List<String> _categories = ['All', 'Hot Coffee', 'Cold Coffee', 'Specials'];
+  final List<String> _categories = [
+    'All',
+    'Hot Coffee',
+    'Cold Coffee',
+    'Specials'
+  ];
 
   Future<void> _addToFavorites(Map<String, dynamic> item) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please login to add items to favorites')),
+          const SnackBar(
+              content: Text('Please login to add items to favorites')),
         );
         return;
       }
@@ -64,7 +75,8 @@ class _HomePageState extends State<HomePage> {
       if (querySnapshot.docs.isNotEmpty) {
         // Item exists, update quantity
         final docId = querySnapshot.docs.first.id;
-        final currentQuantity = querySnapshot.docs.first.data()['quantity'] ?? 0;
+        final currentQuantity =
+            querySnapshot.docs.first.data()['quantity'] ?? 0;
 
         await FirebaseFirestore.instance.collection('cart').doc(docId).update({
           'quantity': currentQuantity + 1,
@@ -195,7 +207,8 @@ class _HomePageState extends State<HomePage> {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
     );
@@ -229,11 +242,12 @@ class _HomePageState extends State<HomePage> {
         final items = snapshot.data?.docs ?? [];
         final filteredItems = items.where((item) {
           final data = item.data() as Map<String, dynamic>;
-          final itemName = data['name'] as String;
-          final itemCategory = data['category'] as String? ?? 'All';
+          final itemName = data['name']?.toString() ?? '';
+          final itemCategory = data['category']?.toString() ?? 'All';
 
           bool matchesSearch = itemName.toLowerCase().contains(_searchQuery);
-          bool matchesCategory = _selectedCategory == 'All' || itemCategory == _selectedCategory;
+          bool matchesCategory =
+              _selectedCategory == 'All' || itemCategory == _selectedCategory;
 
           return matchesSearch && matchesCategory;
         }).toList();
@@ -278,114 +292,138 @@ class _HomePageState extends State<HomePage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20.r),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Stack(
-                    children: [
-                      SizedBox(
-                        height: 140.h,
-                        width: double.infinity,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-                          child: Image.network(
-                            item['image'],
-                            fit: BoxFit.fill,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              );
-                            },
+              child: GestureDetector(
+                onTap: () {
+                  final productId = filteredItems[index].id;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BlocProvider(
+                        create: (context) => ProductDetailsBloc(
+                          getProductDetails: GetProductDetails(
+                            ProductRepositoryImpl(FirebaseFirestore.instance),
                           ),
                         ),
+                        child: ProductDetailsPage(productId: productId),
                       ),
-                      Positioned(
-                        top: 8.h,
-                        right: 8.w,
-                        child: CircleAvatar(
-                          radius: 16.r,
-                          backgroundColor: Colors.white,
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.favorite_border,
-                              color: Colors.brown,
-                              size: 18.sp,
-                            ),
-                            onPressed: () => _addToFavorites(item),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(8.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                  );
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Stack(
                       children: [
-                        Text(
-                          item['name'],
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: 4.h),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                          decoration: BoxDecoration(
-                            color: Colors.brown[50],
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
-                          child: Text(
-                            'Coffee: ${item['coffee']}% | Milk: ${item['milk']}%',
-                            style: TextStyle(
-                              fontSize: 9.sp,
-                              color: Colors.brown[700],
+                        SizedBox(
+                          height: 140.h,
+                          width: double.infinity,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20.r)),
+                            child: Image.network(
+                              item['image']?.toString() ?? '',
+                              fit: BoxFit.fill,
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes !=
+                                            null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ),
-                        SizedBox(height: 8.h),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '\$${item['amount']}',
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.brown[700],
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
+                        Positioned(
+                          top: 8.h,
+                          right: 8.w,
+                          child: CircleAvatar(
+                            radius: 16.r,
+                            backgroundColor: Colors.white,
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.favorite_border,
                                 color: Colors.brown,
-                                borderRadius: BorderRadius.circular(12.r),
+                                size: 18.sp,
                               ),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.add_shopping_cart,
-                                  color: Colors.white,
-                                  size: 16.sp,
-                                ),
-                                onPressed: () => _addToCart(item),
-                                padding: EdgeInsets.all(6.w),
-                              ),
+                              onPressed: () => _addToFavorites(item),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
                             ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: EdgeInsets.all(8.w),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item['name']?.toString() ?? 'Unnamed Product',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 4.h),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 6.w, vertical: 2.h),
+                            decoration: BoxDecoration(
+                              color: Colors.brown[50],
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: Text(
+                              'Coffee: ${item['coffee']?.toString() ?? '0'}% | Milk: ${item['milk']?.toString() ?? '0'}%',
+                              style: TextStyle(
+                                fontSize: 9.sp,
+                                color: Colors.brown[700],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '\$${item['amount']?.toString() ?? '0.00'}',
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.brown[700],
+                                ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.brown,
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.add_shopping_cart,
+                                    color: Colors.white,
+                                    size: 16.sp,
+                                  ),
+                                  onPressed: () => _addToCart(item),
+                                  padding: EdgeInsets.all(6.w),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },
