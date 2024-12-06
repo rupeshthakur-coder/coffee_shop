@@ -278,8 +278,9 @@ class CartPage extends StatelessWidget {
                                   child: const Text(
                                     'Checkout',
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ),

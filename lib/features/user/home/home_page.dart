@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:coffee_shop/features/product_details/data/repositories/product_repository_impl.dart';
-import 'package:coffee_shop/features/product_details/domain/usecases/get_product_details.dart';
-import 'package:coffee_shop/features/product_details/presentation/bloc/product_details_bloc.dart';
-import 'package:coffee_shop/features/product_details/presentation/pages/product_details_page.dart';
+import 'package:coffee_shop/features/user/presentation/pages/product_details/data/repositories/product_repository_impl.dart';
+import 'package:coffee_shop/features/user/presentation/pages/product_details/domain/usecases/get_product_details.dart';
+import 'package:coffee_shop/features/user/presentation/pages/product_details/presentation/bloc/product_details_bloc.dart';
+import 'package:coffee_shop/features/user/presentation/pages/product_details/presentation/pages/product_details_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

@@ -2,8 +2,9 @@
 //adminpassword123
 //admin@example.com
 
-import 'package:flutter/material.dart';
 import 'package:coffee_shop/features/admin/admin_dashboard/add_product_page.dart';
+
+import 'package:flutter/material.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -18,14 +19,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return Container(
       height: MediaQuery.of(context).size.height,
       width: MediaQuery.of(context).size.width,
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/images/background.png'),
-          fit: BoxFit.cover,
-        ),
-      ),
+      decoration: const BoxDecoration(),
       child: Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: const Icon(Icons.arrow_back),
+            color: Colors.white,
+          ),
           title: const Text(
             'Coffee Shop Admin Dashboard',
             style: TextStyle(color: Colors.white),
@@ -56,7 +59,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AddProductPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const AddProductPage()),
                 );
               },
             ),
